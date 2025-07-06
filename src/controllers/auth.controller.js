@@ -104,7 +104,12 @@ export async function login(req, res) {
 
 // ✅ Logout
 export async function logout(req, res) {
-  res.clearCookie("jwt");
+  res.clearCookie("jwt", {
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+    secure: process.env.NODE_ENV === "production", // Must be true on Render
+  });
+
   res.status(200).json({ success: true, message: "Logout successful" });
 }
 
