@@ -6,7 +6,7 @@ import cors from "cors";
 import "dotenv/config";
 
 import { createAdapter } from "@socket.io/redis-adapter";
-import { createClient } from "ioredis";
+import Redis from "ioredis"; // ✅ use default import, not { createClient }
 
 import { connectDB } from "./lib/db.js";
 import socketHandler from "./lib/socket.js";
@@ -21,50 +21,45 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
+// ✅ Socket.io setup
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL,
-    credentials: true
-  }
+    credentials: true,
+  },
 });
 
-// Attach io to each request (optional, only if you use req.io in routes)
+// 🔌 Attach io to requests if needed
 app.use((req, res, next) => {
   req.io = io;
   next();
 });
 
-// Middleware
-app.use(cors({
-  origin: process.env.CLIENT_URL,
-  credentials: true
-}));
+// ✅ Middlewares
+app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Routes
+// ✅ Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/upload", uploadRoutes);
 
-// 🔌 Redis Adapter Setup
 const startServer = async () => {
   try {
-    const pubClient = new createClient(process.env.REDIS_URL, {
-      tls: {} // required for Upstash
+    // 🔌 Upstash Redis setup (no need to manually connect)
+    const pubClient = new Redis(process.env.REDIS_URL, {
+      tls: {}, // required by Upstash
     });
     const subClient = pubClient.duplicate();
 
-    await pubClient.connect();
-    await subClient.connect();
+    io.adapter(createAdapter(pubClient, subClient)); // apply Redis adapter
 
-    io.adapter(createAdapter(pubClient, subClient));
-
-    // Initialize WebSocket events
+    // ✅ Initialize WebSocket
     socketHandler(io);
 
-    // Start server
+    // ✅ Connect DB and start server
     server.listen(PORT, () => {
       connectDB();
       console.log(`🚀 Server running on port ${PORT}`);
@@ -74,5 +69,6 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
 
 startServer();
