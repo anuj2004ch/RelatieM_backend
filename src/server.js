@@ -29,7 +29,7 @@ const io = new Server(server, {
   },
 });
 
-// 🔌 Attach io to requests if needed
+
 app.use((req, res, next) => {
   req.io = io;
   next();
