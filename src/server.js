@@ -18,7 +18,7 @@ import chatRoutes from "./routes/chat.route.js";
 import uploadRoutes from "./routes/upload.routes.js";
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const server = http.createServer(app);
 
 // ✅ Socket.io setup
@@ -56,14 +56,14 @@ const startServer = async () => {
 
     io.adapter(createAdapter(pubClient, subClient)); // apply Redis adapter
 
-    // ✅ Initialize WebSocket
+   
     socketHandler(io);
 
-    // ✅ Connect DB and start server
-    server.listen(PORT, () => {
-      connectDB();
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
+    server.listen(PORT, "0.0.0.0", () => {
+  connectDB();
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+
   } catch (error) {
     console.error("❌ Redis adapter connection failed:", error);
     process.exit(1);
